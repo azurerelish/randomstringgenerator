@@ -1,0 +1,90 @@
+public with sharing class RandomStringGenerator {
+    
+    public class FlowInput {
+        @InvocableVariable(required=true)
+        public Integer length;
+        @InvocableVariable(required=true)
+        public Boolean includeNumbers;
+        @InvocableVariable(required=true)
+        public Boolean includeSymbols;
+    }
+    
+    public class FlowOutput {
+        @InvocableVariable
+        public String randomString;
+        @InvocableVariable
+        public String debugLog;
+    }
+    
+    @InvocableMethod(
+        label='Generate Random Secure String'
+        description='Generate a random string with configurable length, numbers, and symbols'
+    )
+    public static List<FlowOutput> generate(List<FlowInput> inputs) {
+        List<FlowOutput> results = new List<FlowOutput>();
+        
+        for (FlowInput input : inputs) {
+            FlowOutput output = new FlowOutput();
+            List<String> debugLines = new List<String>();
+            
+            output.randomString = generateString(
+                input.length,
+                input.includeNumbers,
+                input.includeSymbols,
+                debugLines
+            );
+            output.debugLog = String.join(debugLines, '\n');
+            results.add(output);
+        }
+        
+        return results;
+    }
+    
+    private static String generateString(
+        Integer length,
+        Boolean includeNumbers,
+        Boolean includeSymbols,
+        List<String> debugLines
+    ) {
+        if (length == null || length <= 0) {
+            throw new IllegalArgumentException('Length must be greater than 0');
+        }
+        
+String letters = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
+String numbers = '0123456789';
+String symbols = '!@#$%&*()=+?';  // Safe symbols only
+        
+        String charset = letters;
+        if (includeNumbers == true) {
+            charset += numbers;
+        }
+        if (includeSymbols == true) {
+            charset += symbols;
+        }
+        
+        debugLines.add('Requested length: ' + length);
+        debugLines.add('Charset length: ' + charset.length());
+        debugLines.add('---');
+        
+        List<String> characters = new List<String>();
+        Integer charsetLength = charset.length();
+        
+        for (Integer i = 0; i < length; i++) {
+            Long randomLong = Crypto.getRandomInteger();
+            Long absoluteValue = Math.abs(randomLong);
+            Integer idx = (Integer)Math.mod(absoluteValue, charsetLength);
+            String character = charset.substring(idx, idx + 1);
+            
+            debugLines.add('i=' + i + ' | random=' + randomLong + ' | abs=' + absoluteValue + ' | idx=' + idx + ' | char="' + character + '"');
+            
+            characters.add(character);
+        }
+        
+        String result = String.join(characters, '');
+        
+        debugLines.add('---');
+        debugLines.add('Final: "' + result + '" (length: ' + result.length() + ')');
+        
+        return result;
+    }
+}

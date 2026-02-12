@@ -1,0 +1,64 @@
+@IsTest
+private class RandomStringGeneratorTest {
+
+    @IsTest
+    static void testLettersOnly() {
+        RandomStringGenerator.FlowInput input = new RandomStringGenerator.FlowInput();
+        input.length = 10;
+        input.includeNumbers = false;
+        input.includeSymbols = false;
+
+        List<RandomStringGenerator.FlowOutput> results =
+            RandomStringGenerator.generate(new List<RandomStringGenerator.FlowInput>{ input });
+
+        System.assertEquals(1, results.size());
+        System.assertEquals(10, results[0].randomString.length());
+        System.assert(
+    Pattern.matches('[a-zA-Z]+', results[0].randomString),
+    'String should contain letters only'
+);
+    }
+
+    @IsTest
+    static void testLettersAndNumbers() {
+        RandomStringGenerator.FlowInput input = new RandomStringGenerator.FlowInput();
+        input.length = 20;
+        input.includeNumbers = true;
+        input.includeSymbols = false;
+
+        List<RandomStringGenerator.FlowOutput> results =
+            RandomStringGenerator.generate(new List<RandomStringGenerator.FlowInput>{ input });
+
+        System.assertEquals(20, results[0].randomString.length());
+    }
+
+    @IsTest
+    static void testLettersNumbersSymbols() {
+        RandomStringGenerator.FlowInput input = new RandomStringGenerator.FlowInput();
+        input.length = 30;
+        input.includeNumbers = true;
+        input.includeSymbols = true;
+
+        List<RandomStringGenerator.FlowOutput> results =
+            RandomStringGenerator.generate(new List<RandomStringGenerator.FlowInput>{ input });
+
+        System.assertEquals(30, results[0].randomString.length());
+    }
+
+    @IsTest
+    static void testInvalidLength() {
+        RandomStringGenerator.FlowInput input = new RandomStringGenerator.FlowInput();
+        input.length = 0;
+        input.includeNumbers = false;
+        input.includeSymbols = false;
+
+        try {
+            RandomStringGenerator.generate(
+                new List<RandomStringGenerator.FlowInput>{ input }
+            );
+            System.assert(false, 'Exception should have been thrown');
+        } catch (Exception e) {
+            System.assert(e.getMessage().contains('Length must be greater than 0'));
+        }
+    }
+}
